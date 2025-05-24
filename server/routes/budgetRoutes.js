@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
 const Budget = require('../models/Budget');
+const Transaction = require('../models/Transaction');
 
 // Create a new budget
 router.post('/', authMiddleware, async (req, res) => {
@@ -65,7 +66,13 @@ router.get('/summary', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
         const budgets = await Budget.find({ userId, month });
-        const transactions = await Transaction.find({ userId, date: { $gte: new Date(`${month}-01`), $lt: new Date(`${month}-01T23:59:59.999Z`) } });
+        const transactions = await Transaction.find({ 
+            userId, 
+            date: { 
+                $gte: new Date(`${month}-01`), 
+                $lt: new Date(`${month}-01T23:59:59.999Z`) 
+            } 
+        });
 
         // Calculate total income and expenses
         const totalIncome = transactions
@@ -90,3 +97,5 @@ router.get('/summary', authMiddleware, async (req, res) => {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
+
+module.exports = router;

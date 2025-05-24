@@ -3,6 +3,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+
 
 // Load environment variables
 dotenv.config();
@@ -23,7 +26,9 @@ app.get('/', (req, res) => {
 });
 
 // Auth routes
-app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/auth', authRoutes);
+app.use('/api/budget', budgetRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // Server listening
 const PORT = process.env.PORT || 5000;
