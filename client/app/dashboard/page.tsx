@@ -14,10 +14,6 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
-  useEffect(() => {
-    fetchTotalExpenses();
-  }, [selectedMonth, selectedYear]);
-
   const fetchTotalExpenses = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -41,13 +37,20 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    fetchTotalExpenses();
+  }, [selectedMonth, selectedYear]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
         {/* Top row with AddTransaction and CategoryBreakdown side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <AddTransaction totalExpenses={totalExpenses} />
+            <AddTransaction 
+              totalExpenses={totalExpenses} 
+              onTransactionAdded={fetchTotalExpenses}
+            />
           </div>
           <div>
             <CategoryBreakdown />

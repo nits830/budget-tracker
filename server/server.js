@@ -38,8 +38,8 @@ app.get('/', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', authRoutes);
-app.use('/api/budget', budgetRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/budgets', budgetRoutes);
 
 // Server listening
 const PORT = process.env.PORT || 5000;

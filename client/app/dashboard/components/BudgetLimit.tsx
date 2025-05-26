@@ -12,11 +12,11 @@ interface BudgetLimitProps {
 }
 
 export default function BudgetLimit({ selectedMonth, selectedYear, totalExpenses }: BudgetLimitProps) {
-  const [budgetLimit, setBudgetLimit] = useState<number | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [newLimit, setNewLimit] = useState('');
+  const [budgetLimit, setBudgetLimit] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSettingLimit, setIsSettingLimit] = useState(false);
+  const [newLimit, setNewLimit] = useState('');
 
   useEffect(() => {
     fetchBudgetLimit();
@@ -40,11 +40,8 @@ export default function BudgetLimit({ selectedMonth, selectedYear, totalExpenses
         }
       );
 
-      if (response.data && response.data.length > 0) {
-        setBudgetLimit(response.data[0].limit);
-      } else {
-        setBudgetLimit(null);
-      }
+      console.log('Fetched budget:', response.data); // Debug log
+      setBudgetLimit(response.data.limit || 0);
     } catch (err) {
       console.error('Error fetching budget limit:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -53,100 +50,151 @@ export default function BudgetLimit({ selectedMonth, selectedYear, totalExpenses
     }
   };
 
-  const handleSaveLimit = async () => {
+  const handleSetLimit = async () => {
     try {
-      setLoading(true);
       setError(null);
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
       }
 
-      await axios.post(
+      // Validate the input
+      const limit = parseFloat(newLimit);
+      if (isNaN(limit) || limit <= 0) {
+        throw new Error('Please enter a valid positive number');
+      }
+
+      console.log('Setting budget:', { limit, month: selectedMonth, year: selectedYear }); // Debug log
+
+      const response = await axios.post(
         `${API_BASE_URL}/api/budgets`,
         {
+          limit,
           month: selectedMonth,
-          year: selectedYear,
-          limit: parseFloat(newLimit)
+          year: selectedYear
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
         }
       );
 
-      setBudgetLimit(parseFloat(newLimit));
-      setIsEditing(false);
+      console.log('Budget set response:', response.data); // Debug log
+      setBudgetLimit(response.data.limit);
+      setIsSettingLimit(false);
       setNewLimit('');
+      
+      // Refresh the budget limit
+      await fetchBudgetLimit();
     } catch (err) {
       console.error('Error setting budget limit:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const progressPercentage = budgetLimit ? (totalExpenses / budgetLimit) * 100 : 0;
-  const isOverBudget = progressPercentage > 100;
+  const percentage = budgetLimit > 0 ? (totalExpenses / budgetLimit) * 100 : 0;
+  const remaining = budgetLimit - totalExpenses;
 
-  return (
-    <div className="bg-white p-4 rounded-lg shadow mb-4">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold">Monthly Budget</h3>
-        {!isEditing ? (
+  if (loading) {
+    return (
+      <div className="animate-pulse bg-gray-200 h-24 rounded-lg"></div>
+    );
+  }
+
+  if (!budgetLimit && !isSettingLimit) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-4">Set Monthly Budget</h3>
           <button
-            onClick={() => setIsEditing(true)}
-            className="text-sm text-indigo-600 hover:text-indigo-800"
+            onClick={() => setIsSettingLimit(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
-            {budgetLimit ? 'Edit' : 'Set Limit'}
+            Set Budget Limit
           </button>
-        ) : (
-          <div className="flex gap-2">
+        </div>
+      </div>
+    );
+  }
+
+  if (isSettingLimit) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow mb-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-center">Set Monthly Budget</h3>
+          <div className="flex items-center space-x-2">
             <input
               type="number"
               value={newLimit}
               onChange={(e) => setNewLimit(e.target.value)}
+              className="flex-1 px-3 py-2 border rounded"
               placeholder="Enter budget limit"
-              className="w-32 px-2 py-1 border rounded text-sm"
+              min="0"
+              step="0.01"
             />
             <button
-              onClick={handleSaveLimit}
-              className="text-sm text-indigo-600 hover:text-indigo-800"
+              onClick={handleSetLimit}
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
             >
               Save
             </button>
             <button
               onClick={() => {
-                setIsEditing(false);
+                setIsSettingLimit(false);
                 setNewLimit('');
+                setError(null);
               }}
-              className="text-sm text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
             >
               Cancel
             </button>
           </div>
-        )}
+          {error && (
+            <div className="text-red-500 text-sm text-center">
+              {error}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">Monthly Budget</h3>
+        <button
+          onClick={() => setIsSettingLimit(true)}
+          className="text-sm text-indigo-600 hover:text-indigo-800"
+        >
+          Edit Limit
+        </button>
       </div>
 
-      {budgetLimit && (
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>${totalExpenses.toFixed(2)} / ${budgetLimit.toFixed(2)}</span>
-            <span className={isOverBudget ? 'text-red-600' : 'text-gray-600'}>
-              {progressPercentage.toFixed(1)}%
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className={`h-2.5 rounded-full ${
-                isOverBudget ? 'bg-red-600' : 'bg-indigo-600'
-              }`}
-              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-            ></div>
-          </div>
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span>Spent: ${totalExpenses.toFixed(2)}</span>
+          <span>Limit: ${budgetLimit.toFixed(2)}</span>
         </div>
-      )}
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div
+            className={`h-2.5 rounded-full ${
+              percentage > 100 ? 'bg-red-600' : 'bg-indigo-600'
+            }`}
+            style={{ width: `${Math.min(percentage, 100)}%` }}
+          ></div>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className={remaining < 0 ? 'text-red-600' : 'text-green-600'}>
+            {remaining < 0
+              ? `Over budget by $${Math.abs(remaining).toFixed(2)}`
+              : `Remaining: $${remaining.toFixed(2)}`}
+          </span>
+          <span>{percentage.toFixed(1)}%</span>
+        </div>
+      </div>
 
       {error && (
         <div className="text-red-500 text-sm mt-2">

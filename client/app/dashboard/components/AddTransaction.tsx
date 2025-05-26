@@ -8,9 +8,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 interface AddTransactionProps {
   totalExpenses: number;
+  onTransactionAdded: () => void;
 }
 
-export default function AddTransaction({ totalExpenses }: AddTransactionProps) {
+export default function AddTransaction({ totalExpenses, onTransactionAdded }: AddTransactionProps) {
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('expense');
   const [category, setCategory] = useState('');
@@ -60,6 +61,9 @@ export default function AddTransaction({ totalExpenses }: AddTransactionProps) {
       setDescription('');
       setIsCustomCategory(false);
       setCustomCategory('');
+      
+      // Call the callback to refresh total expenses
+      onTransactionAdded();
     } catch (err) {
       console.error('Error adding transaction:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
