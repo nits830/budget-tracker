@@ -63,10 +63,29 @@ const transactionSchema = new mongoose.Schema({
     type: Date, 
     default: Date.now 
   },
+  month: {
+    type: Number,
+    min: 1,
+    max: 12
+  },
+  year: {
+    type: Number,
+    min: 1900,
+    max: 2100
+  },
   isCustomCategory: {
     type: Boolean,
     default: false
   }
+});
+
+// Pre-validate middleware to set month and year from date
+transactionSchema.pre('validate', function(next) {
+  if (this.date) {
+    this.month = this.date.getMonth() + 1; // getMonth() returns 0-11
+    this.year = this.date.getFullYear();
+  }
+  next();
 });
 
 // Add static method to get all categories for a type

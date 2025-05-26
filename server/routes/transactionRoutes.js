@@ -59,4 +59,19 @@ const {
     res.json(MAJOR_CATEGORIES);
   });
   
+  // Get recent transactions
+  router.get('/recent', async (req, res) => {
+    try {
+      const transactions = await Transaction.find()
+        .sort({ date: -1 })
+        .limit(10)
+        .lean();
+
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error fetching recent transactions:', error);
+      res.status(500).json({ error: 'Failed to fetch recent transactions' });
+    }
+  });
+  
   module.exports = router;
