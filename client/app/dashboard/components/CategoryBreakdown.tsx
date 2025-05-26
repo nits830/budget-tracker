@@ -14,7 +14,11 @@ interface CategoryData {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-export default function CategoryBreakdown() {
+interface CategoryBreakdownProps {
+  refreshTrigger?: number; // Add this prop to trigger refreshes
+}
+
+export default function CategoryBreakdown({ refreshTrigger = 0 }: CategoryBreakdownProps) {
   const currentDate = new Date();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +28,7 @@ export default function CategoryBreakdown() {
 
   useEffect(() => {
     fetchCategoryData();
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, refreshTrigger]); // Add refreshTrigger to dependencies
 
   const fetchCategoryData = async () => {
     try {
@@ -44,7 +48,7 @@ export default function CategoryBreakdown() {
         }
       );
 
-      console.log('Received data:', response.data);
+      console.log('Received category data:', response.data);
       setCategoryData(response.data);
     } catch (err) {
       console.error('Error fetching category data:', err);
@@ -134,7 +138,7 @@ export default function CategoryBreakdown() {
   const totalExpenses = categoryData.reduce((sum, item) => sum + item.total, 0);
   const topCategories = [...categoryData]
     .sort((a, b) => b.total - a.total)
-    .slice(0, 3);
+    .slice(0, 5);
 
   if (loading) {
     return (

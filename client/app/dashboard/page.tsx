@@ -10,6 +10,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function Dashboard() {
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
@@ -37,6 +38,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleTransactionAdded = () => {
+    fetchTotalExpenses();
+    setRefreshTrigger(prev => prev + 1); // Increment trigger to refresh CategoryBreakdown
+  };
+
   useEffect(() => {
     fetchTotalExpenses();
   }, [selectedMonth, selectedYear]);
@@ -49,17 +55,17 @@ export default function Dashboard() {
           <div>
             <AddTransaction 
               totalExpenses={totalExpenses} 
-              onTransactionAdded={fetchTotalExpenses}
+              onTransactionAdded={handleTransactionAdded}
             />
           </div>
           <div>
-            <CategoryBreakdown />
+            <CategoryBreakdown refreshTrigger={refreshTrigger} />
           </div>
         </div>
 
         {/* Bottom row with RecentTransactions at full width */}
         <div className="w-full">
-          <RecentTransactions />
+          <RecentTransactions onTransactionAdded={handleTransactionAdded} />
         </div>
       </div>
     </div>
