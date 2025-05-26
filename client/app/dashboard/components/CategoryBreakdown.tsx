@@ -69,12 +69,12 @@ export default function CategoryBreakdown() {
     // Sort categories by total amount
     const sortedData = [...categoryData].sort((a, b) => b.total - a.total);
     
-    // Take top 10 categories
-    const topCategories = sortedData.slice(0, 10);
+    // Take top 5 categories
+    const topCategories = sortedData.slice(0, 5);
     
     // Sum up the rest as "Others"
     const othersTotal = sortedData
-      .slice(10)
+      .slice(5)
       .reduce((sum, item) => sum + item.total, 0);
 
     const labels = [
@@ -90,8 +90,7 @@ export default function CategoryBreakdown() {
     // Generate colors
     const backgroundColors = [
       '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-      '#FF9F40', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
-      '#9966FF' // Color for "Others"
+      '#FF9F40' // Color for "Others"
     ];
 
     return {
@@ -107,10 +106,13 @@ export default function CategoryBreakdown() {
   const chartOptions = {
     plugins: {
       legend: {
-        position: 'right' as const,
+        position: 'bottom' as const,
         labels: {
-          boxWidth: 15,
-          padding: 15
+          boxWidth: 12,
+          padding: 10,
+          font: {
+            size: 11
+          }
         }
       },
       tooltip: {
@@ -124,8 +126,15 @@ export default function CategoryBreakdown() {
           }
         }
       }
-    }
+    },
+    maintainAspectRatio: false,
+    responsive: true
   };
+
+  const totalExpenses = categoryData.reduce((sum, item) => sum + item.total, 0);
+  const topCategories = [...categoryData]
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3);
 
   if (loading) {
     return (
@@ -149,7 +158,7 @@ export default function CategoryBreakdown() {
         <select
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
         >
           {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
             <option key={month} value={month}>
@@ -161,7 +170,7 @@ export default function CategoryBreakdown() {
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
         >
           {Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - i).map((year) => (
             <option key={year} value={year}>
@@ -172,9 +181,35 @@ export default function CategoryBreakdown() {
       </div>
 
       {categoryData.length > 0 ? (
-        <div className="h-[400px] flex items-center justify-center">
-          <div className="w-[350px] h-[350px]">
-            <Pie data={prepareChartData()} options={chartOptions} />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
+            <div className="bg-white p-4 rounded-lg shadow">
+              <h3 className="text-lg font-semibold mb-2">Total Expenses</h3>
+              <p className="text-2xl font-bold text-red-600">
+                ${totalExpenses.toFixed(2)}
+              </p>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow">
+              <h3 className="text-lg font-semibold mb-2">Top Categories</h3>
+              <div className="space-y-2">
+                {topCategories.map((category) => (
+                  <div key={category.category} className="flex justify-between items-center">
+                    <span className="text-sm">{category.category}</span>
+                    <span className="font-medium">${category.total.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow flex flex-col">
+            <h3 className="text-lg font-semibold mb-4 text-center">Expense Distribution</h3>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-[250px] h-[250px] relative">
+                <Pie data={prepareChartData()} options={chartOptions} />
+              </div>
+            </div>
           </div>
         </div>
       ) : (

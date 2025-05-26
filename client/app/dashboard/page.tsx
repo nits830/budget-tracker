@@ -1,81 +1,62 @@
 'use client';
 
-import TransactionForm from './components/TransactionForm';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import AddTransaction from './components/AddTransaction';
 import RecentTransactions from './components/RecentTransactions';
 import CategoryBreakdown from './components/CategoryBreakdown';
 
-export default function DashboardPage() {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+export default function Dashboard() {
+  const [totalExpenses, setTotalExpenses] = useState(0);
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+
+  useEffect(() => {
+    fetchTotalExpenses();
+  }, [selectedMonth, selectedYear]);
+
+  const fetchTotalExpenses = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.get(
+        `${API_BASE_URL}/api/transactions/category-breakdown?month=${selectedMonth}&year=${selectedYear}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const total = response.data.reduce((sum: number, item: any) => sum + item.total, 0);
+      setTotalExpenses(total);
+    } catch (err) {
+      console.error('Error fetching total expenses:', err);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header Section */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
+        {/* Top row with AddTransaction and CategoryBreakdown side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <AddTransaction totalExpenses={totalExpenses} />
+          </div>
+          <div>
+            <CategoryBreakdown />
+          </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-12 gap-6">
-          {/* Transaction Form - Spans 4 columns */}
-          <div className="col-span-12 lg:col-span-4">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Transaction</h2>
-                <TransactionForm />
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Transactions - Spans 8 columns */}
-          <div className="col-span-12 lg:col-span-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Transactions</h2>
-                <RecentTransactions />
-              </div>
-            </div>
-          </div>
-
-          {/* Category Breakdown - Spans 6 columns */}
-          <div className="col-span-12 md:col-span-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h2>
-                <CategoryBreakdown />
-              </div>
-            </div>
-          </div>
-
-          {/* Monthly Summary - Spans 6 columns */}
-          <div className="col-span-12 md:col-span-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Summary</h2>
-                {/* Add your monthly summary component here */}
-              </div>
-            </div>
-          </div>
-
-          {/* Budget Progress - Spans 6 columns */}
-          <div className="col-span-12 md:col-span-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Budget Progress</h2>
-                {/* Add your budget progress component here */}
-              </div>
-            </div>
-          </div>
-
-          {/* Savings Goals - Spans 6 columns */}
-          <div className="col-span-12 md:col-span-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Savings Goals</h2>
-                {/* Add your savings goals component here */}
-              </div>
-            </div>
-          </div>
+        {/* Bottom row with RecentTransactions at full width */}
+        <div className="w-full">
+          <RecentTransactions />
         </div>
       </div>
     </div>
