@@ -2,6 +2,7 @@
 
 import TransactionForm from './components/TransactionForm';
 import RecentTransactions from './components/RecentTransactions';
+import CategoryBreakdown from './components/CategoryBreakdown';
 
 export default function DashboardPage() {
   return (
@@ -36,22 +37,22 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Category Breakdown - Spans 6 columns */}
+          <div className="col-span-12 md:col-span-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h2>
+                <CategoryBreakdown />
+              </div>
+            </div>
+          </div>
+
           {/* Monthly Summary - Spans 6 columns */}
           <div className="col-span-12 md:col-span-6">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
               <div className="p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Monthly Summary</h2>
                 {/* Add your monthly summary component here */}
-              </div>
-            </div>
-          </div>
-
-          {/* Category Breakdown - Spans 6 columns */}
-          <div className="col-span-12 md:col-span-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full">
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h2>
-                {/* Add your category breakdown component here */}
               </div>
             </div>
           </div>

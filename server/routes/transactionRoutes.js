@@ -73,5 +73,58 @@ const {
       res.status(500).json({ error: 'Failed to fetch recent transactions' });
     }
   });
+
+  // Get category breakdown
+  router.get('/category-breakdown', authMiddleware, async (req, res) => {
+    try {
+      const { month, year } = req.query;
+      
+      // Create date range for the selected month and year
+      const startDate = new Date(year, month - 1, 1, 0, 0, 0, 0);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+      console.log('Date Range:', {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        month,
+        year
+      });
+
+      // Get expense transactions for the user within the date range
+      const transactions = await Transaction.find({
+        userId: req.user.id,
+        type: 'expense',
+        date: {
+          $gte: startDate,
+          $lte: endDate
+        }
+      });
+
+      console.log('Found transactions:', transactions.length);
+
+      // Group transactions by category and sum amounts
+      const categoryTotals = transactions.reduce((acc, transaction) => {
+        const category = transaction.category;
+        acc[category] = (acc[category] || 0) + transaction.amount;
+        return acc;
+      }, {});
+
+      // Convert to array format for the frontend
+      const categoryBreakdown = Object.entries(categoryTotals).map(([category, total]) => ({
+        category,
+        total
+      }));
+
+      // Sort by total amount in descending order
+      categoryBreakdown.sort((a, b) => b.total - a.total);
+
+      console.log('Category breakdown:', categoryBreakdown);
+
+      res.json(categoryBreakdown);
+    } catch (error) {
+      console.error('Error fetching category breakdown:', error);
+      res.status(500).json({ error: 'Failed to fetch category breakdown' });
+    }
+  });
   
   module.exports = router;
