@@ -37,22 +37,34 @@ const {
     }
   });
   
-  // GET /api/transactions?userId=xxx
-  router.get('/',authMiddleware, async (req, res) => {
+  // GET /api/transactions
+  router.get('/', authMiddleware, async (req, res) => {
     try {
-        const transactions = await Transaction.find({ userId: req.user.id })
-            .sort({ date: -1 });
-        res.json(transactions);
+      const { month, year, type } = req.query;
+      const query = { userId: req.user.id };
+
+      // Add filters if provided
+      if (month && year) {
+        query.month = parseInt(month);
+        query.year = parseInt(year);
+      }
+      if (type) {
+        query.type = type;
+      }
+
+      const transactions = await Transaction.find(query)
+        .sort({ date: -1 });
+      res.json(transactions);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   });
   
   // DELETE /api/transactions/:id
-  router.delete('/:id',authMiddleware, deleteTransaction);
+  router.delete('/:id', authMiddleware, deleteTransaction);
   
   // PUT /api/transactions/:id
-  router.put('/:id',authMiddleware, updateTransaction);
+  router.put('/:id', authMiddleware, updateTransaction);
   
   // Get all categories
   router.get('/categories', (req, res) => {
