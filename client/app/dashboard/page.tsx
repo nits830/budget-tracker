@@ -7,6 +7,7 @@ import RecentTransactions from './components/RecentTransactions';
 import CategoryBreakdown from './components/CategoryBreakdown';
 import MonthlySummaryGraph from './components/MonthlySummaryGraph';
 import ExpenseInsights from './components/ExpenseInsights';
+import SpendingAnalysis from './components/SpendingAnalysis';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -52,13 +53,19 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left column - Add Transaction */}
-        <div className="lg:col-span-1">
+        {/* Left column - Add Transaction and Spending Analysis */}
+        <div className="lg:col-span-1 space-y-4">
           <AddTransaction 
             totalExpenses={totalExpenses} 
             onTransactionAdded={handleTransactionAdded}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
+          />
+          <SpendingAnalysis
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            refreshTrigger={refreshTrigger}
+            totalExpenses={totalExpenses}
           />
         </div>
 
