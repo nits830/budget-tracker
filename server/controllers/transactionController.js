@@ -1,4 +1,4 @@
-const Transaction = require('../models/Transaction');
+const { Transaction } = require('../models/Transaction');
 
 const addTransaction = async (req, res) => {
   try {
@@ -49,25 +49,49 @@ const getTransactions = async (req, res) => {
 
 const deleteTransaction = async (req, res) => {
   try {
-    const deleted = await Transaction.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Transaction not found' });
-    res.json({ msg: 'Transaction deleted' });
+    const transaction = await Transaction.findByIdAndDelete(req.params.id);
+    
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    // Check if the transaction belongs to the user
+    if (transaction.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to delete this transaction' });
+    }
+
+    res.json({ message: 'Transaction deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error deleting transaction:', err);
+    res.status(500).json({ error: 'Failed to delete transaction' });
   }
 };
 
 const updateTransaction = async (req, res) => {
   try {
-    const updated = await Transaction.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+    const { amount, type, category, description, isCustomCategory } = req.body;
+    
+    const transaction = await Transaction.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      { 
+        amount,
+        type,
+        category,
+        description,
+        isCustomCategory,
+        updatedAt: new Date()
+      },
       { new: true }
     );
-    if (!updated) return res.status(404).json({ error: 'Transaction not found' });
-    res.json(updated);
+
+    if (!transaction) {
+      return res.status(404).json({ message: 'Transaction not found' });
+    }
+
+    res.json(transaction);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error('Error updating transaction:', err);
+    res.status(500).json({ error: 'Failed to update transaction' });
   }
 };
 
