@@ -50,33 +50,6 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Month/Year selector */}
-      <div className="flex gap-4 items-center justify-center mb-4">
-        <select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-        >
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-            <option key={month} value={month}>
-              {new Date(2000, month - 1).toLocaleString('default', { month: 'long' })}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-        >
-          {Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - i).map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left column - Add Transaction */}
         <div className="lg:col-span-1">
@@ -90,7 +63,13 @@ export default function Dashboard() {
 
         {/* Right column - Category Breakdown and Monthly Summary */}
         <div className="lg:col-span-2 space-y-4">
-          <CategoryBreakdown refreshTrigger={refreshTrigger} />
+          <CategoryBreakdown 
+            refreshTrigger={refreshTrigger}
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            onMonthChange={setSelectedMonth}
+            onYearChange={setSelectedYear}
+          />
           <MonthlySummaryGraph
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
