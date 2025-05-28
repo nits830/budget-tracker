@@ -139,4 +139,73 @@ const {
     }
   });
   
+  // Get expense insights
+  router.get('/expense-insights', authMiddleware, async (req, res) => {
+    try {
+      const { month, year } = req.query;
+      
+      // Get all expense transactions for the user
+      const transactions = await Transaction.find({
+        userId: req.user.id,
+        type: 'expense',
+        month: parseInt(month),
+        year: parseInt(year)
+      }).sort({ date: -1 });
+
+      // Calculate insights
+      const insights = {
+        totalExpenses: transactions.reduce((sum, t) => sum + t.amount, 0),
+        averageTransactionAmount: transactions.length > 0 
+          ? transactions.reduce((sum, t) => sum + t.amount, 0) / transactions.length 
+          : 0,
+        highestExpense: transactions.length > 0 
+          ? Math.max(...transactions.map(t => t.amount))
+          : 0,
+        lowestExpense: transactions.length > 0 
+          ? Math.min(...transactions.map(t => t.amount))
+          : 0,
+        categoryBreakdown: {},
+        dailySpending: {},
+        topSpendingDay: null,
+        topSpendingCategory: null
+      };
+
+      // Calculate category breakdown
+      transactions.forEach(transaction => {
+        insights.categoryBreakdown[transaction.category] = 
+          (insights.categoryBreakdown[transaction.category] || 0) + transaction.amount;
+      });
+
+      // Calculate daily spending
+      transactions.forEach(transaction => {
+        const day = transaction.date.getDate();
+        insights.dailySpending[day] = 
+          (insights.dailySpending[day] || 0) + transaction.amount;
+      });
+
+      // Find top spending day
+      const dailySpendingEntries = Object.entries(insights.dailySpending);
+      if (dailySpendingEntries.length > 0) {
+        const [topDay, amount] = dailySpendingEntries.reduce((max, [day, amount]) => 
+          amount > max[1] ? [day, amount] : max
+        , ['0', 0]);
+        insights.topSpendingDay = { day: parseInt(topDay), amount };
+      }
+
+      // Find top spending category
+      const categoryEntries = Object.entries(insights.categoryBreakdown);
+      if (categoryEntries.length > 0) {
+        const [topCategory, amount] = categoryEntries.reduce((max, [category, amount]) => 
+          amount > max[1] ? [category, amount] : max
+        , ['', 0]);
+        insights.topSpendingCategory = { category: topCategory, amount };
+      }
+
+      res.json(insights);
+    } catch (error) {
+      console.error('Error fetching expense insights:', error);
+      res.status(500).json({ error: 'Failed to fetch expense insights' });
+    }
+  });
+  
   module.exports = router;

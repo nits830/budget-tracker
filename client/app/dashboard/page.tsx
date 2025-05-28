@@ -6,6 +6,7 @@ import AddTransaction from './components/AddTransaction';
 import RecentTransactions from './components/RecentTransactions';
 import CategoryBreakdown from './components/CategoryBreakdown';
 import MonthlySummaryGraph from './components/MonthlySummaryGraph';
+import ExpenseInsights from './components/ExpenseInsights';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -71,6 +72,11 @@ export default function Dashboard() {
             onYearChange={setSelectedYear}
           />
           <MonthlySummaryGraph
+            selectedMonth={selectedMonth}
+            selectedYear={selectedYear}
+            refreshTrigger={refreshTrigger}
+          />
+          <ExpenseInsights
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
             refreshTrigger={refreshTrigger}
