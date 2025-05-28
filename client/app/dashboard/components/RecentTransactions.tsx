@@ -249,54 +249,70 @@ export default function RecentTransactions({ onTransactionAdded }: RecentTransac
       {editingTransaction && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Transaction</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Edit Transaction</h3>
+              <button
+                onClick={() => setEditingTransaction(null)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Amount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={editForm.amount}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
-                />
-              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Type</label>
                 <select
                   value={editForm.type}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, type: e.target.value as 'income' | 'expense' }))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  onChange={(e) => setEditForm(prev => ({ ...prev, type: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Amount</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={editForm.amount}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Category</label>
                 <input
                   type="text"
+                  required
                   value={editForm.category}
                   onChange={(e) => setEditForm(prev => ({ ...prev, category: e.target.value }))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">Description</label>
-                <input
-                  type="text"
+                <textarea
                   value={editForm.description}
                   onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  rows={3}
                 />
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
+
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setEditingTransaction(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Cancel
                 </button>
