@@ -72,9 +72,9 @@ const {
   });
   
   // Get recent transactions
-  router.get('/recent', async (req, res) => {
+  router.get('/recent', authMiddleware, async (req, res) => {
     try {
-      const transactions = await Transaction.find()
+      const transactions = await Transaction.find({ userId: req.user.id })
         .sort({ date: -1 })
         .limit(10)
         .lean();
